@@ -1,0 +1,25 @@
+cuda_devices: [0,1,2]
+task_names: ''
+hydra:
+  run:
+    dir: ./workdir/logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    
+tasks:
+    - 
+        name: 'roberta-base'
+        config_path: '../configs'
+        config_name: 'al_cls'
+        command: '/home/jovyan/al_nlp_feasible/active_learning/run_active_learning.py'
+        environ: ''
+        args: 'data.dataset_name=imdb acquisition_model.name=roberta-base'
+        seeds: [23419, 705525, 4837, 10671619, 1084218]
+        n_repeats: 1
+    - 
+        name: 'electra'
+        config_path: '../configs'
+        config_name: 'al_cls'
+        command: '/home/jovyan/al_nlp_feasible/active_learning/run_active_learning.py'
+        environ: ''
+        args: 'data.dataset_name=imdb acquisition_model.name=google/electra-base-discriminator'
+        seeds: [23419, 705525, 4837, 10671619, 1084218]
+        n_repeats: 1

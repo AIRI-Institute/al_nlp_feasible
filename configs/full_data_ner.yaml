@@ -1,0 +1,68 @@
+output_dir: './workdir/run_active_learning'
+hydra:
+  run:
+    dir: ${output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}_${seed}_${to_string:${model.name}}
+  sweep:
+    dir: ${output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}_${seed}_${to_string:${model.name}}
+    subdir: ${hydra.job.num}
+
+seed: 42
+cuda_device: 0
+cache_dir: ./${output_dir}/cache_${seed}_${to_string:${model.name}}
+cache_model_and_dataset: False
+dump_model: True
+framework: ???
+task: 'ner'
+offline_mode: False
+
+data:
+    dataset_name: 'conll2003'
+    path: '../data/'
+    tag_index: 2
+    text_name: 'tokens'
+    label_name: 'ner_tags'
+    labels_to_remove:
+
+model:
+    type: ${task}
+    name: 'distilbert-base-cased'
+    tokenizer_max_length:
+    loss: 'cross-entropy'
+    classifier_dropout: 0.
+    exists_in_repo: True # whether the model exists in HF models repo
+    path_to_pretrained: # required if the model does not exist in HF models repo
+    training:
+        dev_size: 0.
+        shuffle_dev: False
+        freeze_embedder: False
+        batch_size_args:
+            batch_size: 16
+            eval_batch_size: 100
+            min_num_gradient_steps: 350
+            adjust_batch_size: True
+            adjust_num_epochs: True
+            min_batch_size: 4
+        trainer_args:
+            num_epochs: 20
+            patience: 5
+            grad_clipping: 1.
+            serialization_dir: ./output/${to_string:${model.name}}_${seed}_${now:%Y-%m-%d}_${now:%H-%M-%S}
+            validation_metric: ${framework.validation_metric_ner}
+            evaluation_strategy: 'epoch' # for transformers wrapper, 'epoch' or 'steps' or 'no'
+            load_best_at_end: True
+            eval_metrics:
+            fp16:
+                training: False
+                evaluation: False
+            accumulation:
+                gradient_accumulation_steps: 1
+                eval_accumulation_steps:
+        optimizer_args:
+            weight_decay: 0.01
+            lr: 5e-5
+        scheduler_args:
+            warmup_steps_factor: 0.1
+            use_adafactor: False
+
+defaults:
+  - framework: transformers # 'allennlp' or 'transformers'

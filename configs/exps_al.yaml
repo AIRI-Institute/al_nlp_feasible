@@ -1,0 +1,24 @@
+cuda_devices: ???
+task_names: ''
+hydra:
+  run:
+    dir: ./workdir/logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    
+tasks:
+    - 
+        name: 'electra_mnlp'
+        config_path: './configs/al_ner.yaml'
+        command: 'run_active_learning_autoner.py'
+        environ: ''
+        args: 'al.strategy=mnlp model.name=google/electra-base-discriminator model.acquisition_model.name=google/electra-base-discriminator'
+        seeds: [13, 42, 17]
+        n_repeats: 1
+    - 
+        name: 'electra_random'
+        config_path: './configs/al_ner.yaml'
+        command: 'run_active_learning_autoner.py'
+        environ: 'al.strategy=random model.name=google/electra-base-discriminator model.acquisition_model.name=google/electra-base-discriminator'
+        args: ''
+        seeds: [13, 42, 17]
+        n_repeats: 1
+        

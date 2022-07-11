@@ -1,0 +1,3 @@
+name: allennlp
+validation_metric_cls: '+accuracy'
+validation_metric_ner: '+f1-measure-overall'

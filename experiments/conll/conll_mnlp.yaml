@@ -1,0 +1,25 @@
+cuda_devices: [0,1,2]
+task_names: ''
+hydra:
+  run:
+    dir: ./workdir/logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    
+tasks:
+    - 
+        name: 'electra'
+        config_path: '../configs'
+        config_name: 'al_ner'
+        command: '/home/jovyan/al_nlp_feasible/active_learning/run_active_learning.py'
+        environ: ''
+        args: 'data.path=/home/jovyan/al_nlp_feasible/data acquisition_model.name=google/electra-base-discriminator'
+        seeds: [23419, 705525, 4837, 10671619, 1084218]
+        n_repeats: 1
+    -
+        name: 'bertbase'
+        config_path: '../configs'
+        config_name: 'al_ner'
+        command: '/home/jovyan/al_nlp_feasible/active_learning/run_active_learning.py'
+        environ: ''
+        args: 'data.path=/home/jovyan/al_nlp_feasible/data acquisition_model.name=bert-base-cased'
+        seeds: [23419, 705525, 4837, 10671619, 1084218]
+        n_repeats: 1

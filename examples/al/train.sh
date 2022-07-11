@@ -1,0 +1,1 @@
+HYDRA_CONFIG_PATH=../examples/al python '../../active_learning/run_tasks_on_multiple_gpus.py'

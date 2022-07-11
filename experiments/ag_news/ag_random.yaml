@@ -1,0 +1,61 @@
+cuda_devices: [0,1,2]
+task_names: ''
+hydra:
+  run:
+    dir: ./workdir/logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    
+tasks:
+    - 
+        name: 'bert-base'
+        config_path: '../configs'
+        config_name: 'al_cls'
+        command: '/home/jovyan/al_nlp_feasible/active_learning/run_active_learning.py'
+        environ: ''
+        args: 'acquisition_model.name=bert-base-uncased al.strategy=random'
+        seeds: [23419, 705525, 4837, 10671619, 1084218]
+        n_repeats: 1
+    - 
+        name: 'roberta-base'
+        config_path: '../configs'
+        config_name: 'al_cls'
+        command: '/home/jovyan/al_nlp_feasible/active_learning/run_active_learning.py'
+        environ: ''
+        args: 'acquisition_model.name=roberta-base al.strategy=random'
+        seeds: [23419, 705525, 4837, 10671619, 1084218]
+        n_repeats: 1
+    - 
+        name: 'distilroberta-base'
+        config_path: '../configs'
+        config_name: 'al_cls'
+        command: '/home/jovyan/al_nlp_feasible/active_learning/run_active_learning.py'
+        environ: ''
+        args: 'acquisition_model.name=distilroberta-base al.strategy=random'
+        seeds: [23419, 705525, 4837, 10671619, 1084218]
+        n_repeats: 1
+    - 
+        name: 'electra'
+        config_path: '../configs'
+        config_name: 'al_cls'
+        command: '/home/jovyan/al_nlp_feasible/active_learning/run_active_learning.py'
+        environ: ''
+        args: 'acquisition_model.name=google/electra-base-discriminator al.strategy=random'
+        seeds: [23419, 705525, 4837, 10671619, 1084218]
+        n_repeats: 1
+    - 
+        name: 'xlnet-base'
+        config_path: '../configs'
+        config_name: 'al_cls'
+        command: '/home/jovyan/al_nlp_feasible/active_learning/run_active_learning.py'
+        environ: ''
+        args: 'acquisition_model.name=xlnet-base-cased al.strategy=random'
+        seeds: [23419, 705525, 4837, 10671619, 1084218]
+        n_repeats: 1
+    - 
+        name: 'distilelectra'
+        config_path: '../configs'
+        config_name: 'al_cls'
+        command: '/home/jovyan/al_nlp_feasible/active_learning/run_active_learning.py'
+        environ: ''
+        args: 'acquisition_model.name=dlsanochkin/distilelectra-base al.strategy=random'
+        seeds: [23419, 705525, 4837, 10671619, 1084218]
+        n_repeats: 1

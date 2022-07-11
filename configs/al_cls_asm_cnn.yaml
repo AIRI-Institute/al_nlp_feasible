@@ -1,0 +1,130 @@
+output_dir: './workdir/run_active_learning'
+hydra:
+  run:
+    dir: ${output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}_${seed}_${to_string:${acquisition_model.name}}_${to_string:${successor_model.name}}
+  sweep:
+    dir: ${output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}_${seed}_${to_string:${acquisition_model.name}}_${to_string:${successor_model.name}}
+    subdir: ${hydra.job.num}
+
+seed: 42
+cuda_device: 0
+cache_dir: ./${output_dir}/cache_${seed}_${to_string:${acquisition_model.name}}
+cache_model_and_dataset: False
+framework: ???
+task: 'cls'
+offline_mode: False
+
+data:
+    dataset_name: 'ag_news'
+    text_name: 'text'
+    label_name: 'label'
+    labels_to_remove:
+    path: 'datasets'
+    train_size_split: 0.9
+    seed: ${seed}
+
+acquisition_model:
+    type: ${task}
+    name: 'distilbert-base-uncased'
+    tokenizer_max_length: 256
+    num_labels:
+    classifier_dropout: 0.
+    exists_in_repo: True # whether the model exists in HF models repo
+    path_to_pretrained: # required if the model does not exist in HF models repo
+    training:
+        dev_size: 0.
+        shuffle_dev: False
+        freeze_embedder: False
+        batch_size_args:
+            batch_size: 16
+            eval_batch_size: 100
+            min_num_gradient_steps: 350
+            adjust_batch_size: True
+            adjust_num_epochs: True
+            min_batch_size: 4
+        trainer_args:
+            num_epochs: 10
+            patience: ${get_patience_value:${acquisition_model.training.dev_size}}
+            grad_clipping: 1.
+            serialization_dir: ./output/${to_string:${acquisition_model.name}}_${seed}_${now:%Y-%m-%d}_${now:%H-%M-%S}/acquisition
+            validation_metric: ${framework.validation_metric_cls}
+            evaluation_strategy: 'no' # for transformers wrapper, 'epoch' or 'steps' or 'no'
+            eval_metrics: ["f1"]
+            fp16:
+                training: True
+                evaluation: False
+            accumulation:
+                gradient_accumulation_steps: 1
+                eval_accumulation_steps:
+        optimizer_args:
+            weight_decay: 0.01
+            lr: 2e-5
+        scheduler_args:
+            warmup_steps_factor: 0.1
+            use_adafactor: True
+
+successor_model:
+    type: ${task}
+    embeddings_path: 'word2vec' # add cnn-specific params
+    embeddings_cache_dir: './workdir/run_active_learning/embeddings'
+    freeze_embedding: False
+    vocab_size: None
+    embed_dim: 300
+    filter_sizes: [3,4,5]
+    num_filters: [100,100,100]
+    name: 'cnn'
+    tokenizer_max_length: 256
+    num_labels:
+    classifier_dropout: 0.5
+    exists_in_repo: False
+    path_to_pretrained: # required if the model does not exist in HF models repo
+    training:
+        dev_size: 0.1
+        shuffle_dev: False
+        freeze_embedder: False
+        batch_size_args:
+            batch_size: 128
+            eval_batch_size: 100
+            min_num_gradient_steps: 350
+            adjust_batch_size: True
+            adjust_num_epochs: True
+            min_batch_size: 128
+        trainer_args:
+            num_epochs: 20
+            patience: ${get_patience_value:${successor_model.training.dev_size}}
+            grad_clipping: 1.
+            serialization_dir: ./output/${to_string:${acquisition_model.name}}_${seed}_${now:%Y-%m-%d}_${now:%H-%M-%S}/successor
+            validation_metric: ${framework.validation_metric_cls}
+            evaluation_strategy: 'epoch' # for transformers wrapper, 'epoch' or 'steps' or 'no'
+            eval_metrics: ["f1"]
+            fp16:
+                training: True
+                evaluation: False
+            accumulation:
+                gradient_accumulation_steps: 1
+                eval_accumulation_steps:
+        optimizer_args:
+            weight_decay: 0.0
+            lr: 0.001
+        scheduler_args:
+            warmup_steps_factor: 0.0
+            use_adafactor: False
+
+al:
+    strategy: 'lc'
+    num_queries: 15
+    init_p_or_n: 0.01
+    step_p_or_n: 0.01
+    gamma_or_k_confident_to_save: 0.25
+    T: 0.1
+    sampling_type:
+    iters_to_recalc_scores: [0, 1, 4, 8]
+    evaluate_query: True
+    strategy_kwargs:
+        use_da: False
+        use_v2: False
+        use_activation: False
+        use_spectralnorm: True
+
+defaults:
+  - framework: transformers # 'allennlp' or 'transformers'

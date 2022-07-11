@@ -1,0 +1,118 @@
+output_dir: './workdir/run_active_learning'
+hydra:
+  run:
+    dir: ${output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}_${seed}_${to_string:${acquisition_model.name}}
+  sweep:
+    dir: ${output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}_${seed}_${to_string:${acquisition_model.name}}
+    subdir: ${hydra.job.num}
+
+seed: 42
+cuda_device: 0
+cache_dir: ./${output_dir}/cache_${seed}_${to_string:${acquisition_model.name}}
+cache_model_and_dataset: False
+framework: ???
+task: 'ner'
+offline_mode: False
+
+data:
+    dataset_name: 'conll2003'
+    path: '../data/'
+    tag_index: 2
+    text_name: 'tokens'
+    label_name: 'ner_tags'
+    labels_to_remove:
+    
+acquisition_model:
+    type: ${task}
+    name: 'distilbert-base-cased'
+    tokenizer_max_length:
+    loss: 'cross-entropy'
+    training:
+        dev_size: 0.
+        shuffle_dev: False
+        freeze_embedder: False
+        batch_size_args:
+            batch_size: 16
+            eval_batch_size: 100
+            min_num_gradient_steps: 350
+            adjust_batch_size: True
+            adjust_num_epochs: True
+            min_batch_size: 4
+        trainer_args:
+            num_epochs: 5
+            patience: ${get_patience_value:${acquisition_model.training.dev_size}}
+            grad_clipping: 1.
+            serialization_dir:
+            validation_metric: ${framework.validation_metric_ner}
+        optimizer_args:
+            weight_decay: 0.01
+            lr: 5e-5
+        scheduler_args:
+            warmup_steps_factor: 0.1
+
+successor_model:
+    type: ${task}
+    name: 'bilstm-crf'
+    embedding_dim: 50
+    embedding_file: 'https://allennlp.s3.amazonaws.com/datasets/glove/glove.6B.50d.txt.gz'
+    embedding_trainable: True
+    lstm:
+        hidden_size: 200
+        num_layers: 2
+        recurrent_dropout_probability: 0.5
+        layer_dropout_probability: 0.5
+    char_emb:
+        emb_dim: 25
+        cnn_dim: 128
+        cnn_filters: [2, 3, 4, 5]
+        activation: 'mish'
+    dropout: 0.5
+    feedforward:
+        activation: 'tanh'
+        dropout: 0.5
+        hidden_size: 200
+        num_layers: 1
+    tokenizer_max_length:
+    training:
+        dev_size: 0.
+        shuffle_dev: False
+        freeze_embedder: False
+        batch_size_args:
+            batch_size: 64
+            eval_batch_size: 100
+            min_num_gradient_steps: 350
+            adjust_batch_size: True
+            adjust_num_epochs: True
+            min_batch_size: 4
+        trainer_args:
+            num_epochs: 30
+            patience: ${get_patience_value:${successor_models.training.dev_size}}
+            grad_clipping: 5.
+            serialization_dir: ${hydra:run.dir}/checkpoints
+            validation_metric: ${framework.validation_metric_ner}
+        optimizer_args:
+            #weight_decay: 0.00001
+            lr: 0.001
+        scheduler_args:
+            warmup_steps_factor: 0.3
+            mode: 'max'
+            factor: 0.5
+            patience: 2
+            verbose: True
+            min_lr: 0.000001
+
+al:
+    strategy: 'mnlp'
+    num_queries: 15
+    init_p_or_n: 0.02
+    step_p_or_n: 0.02
+    split_by_tokens: True
+    gamma_or_k_confident_to_save: 0.25
+    T: 0.1
+    sampling_type:
+    iters_to_recalc_scores: [0, 1, 4, 8]
+    evaluate_query: True
+    strategy_kwargs:
+
+defaults:
+  - framework: transformers # 'allennlp' or 'transformers'

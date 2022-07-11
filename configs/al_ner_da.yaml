@@ -1,0 +1,59 @@
+output_dir: './workdir/run_active_learning'
+hydra:
+  run:
+    dir: ${output_dir}/${now:%Y-%m-%d}/${seed}_${model.name}_${al.init_p_or_n}
+  sweep:
+    dir: ${output_dir}/${now:%Y-%m-%d}/${seed}_${model.name}_${al.init_p_or_n}
+    subdir: ${hydra.job.num}
+
+seed: 42
+cuda_device: 0
+cache_dir: ./${output_dir}/cache_${seed}_${to_string:${acquisition_model.name}}
+cache_model_and_dataset: False
+framework: ???
+task: 'ner'
+offline_mode: False
+
+data:
+    dataset_name: 'conll2003'
+    path: '../data/'
+    tag_index: 2
+    labels_to_remove:
+
+model:
+    type: ${task}
+    name: './workdir/adapted_distillbert'
+    tokenizer_max_length:
+    loss: 'cross-entropy'
+    training:
+        dev_size: 0.
+        freeze_embedder: False
+        batch_size_args:
+            batch_size: 16
+            eval_batch_size: 100
+            min_num_gradient_steps: 1000
+            adjust_batch_size: True
+        trainer_args:
+            num_epochs: 15
+            patience: 3
+            grad_clipping: 1.
+            serialization_dir:
+        optimizer_args:
+            weight_decay: 0.01
+            lr: 5e-5
+        scheduler_args:
+            warmup_steps_factor: 0.1
+
+successor_model:
+
+al:
+    strategy: 'mnlp'
+    num_queries: 15
+    init_p_or_n: 0.01
+    step_p_or_n: 0.02
+    split_by_tokens: True
+    evaluate_query: True
+    strategy_kwargs:
+
+defaults:
+  - framework: transformers # 'allennlp' or 'transformers'

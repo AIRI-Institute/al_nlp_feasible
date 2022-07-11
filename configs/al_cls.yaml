@@ -1,0 +1,98 @@
+output_dir: './workdir/run_active_learning'
+hydra:
+  run:
+    dir: ${output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}_${seed}_${to_string:${acquisition_model.name}}_${al.strategy}
+  sweep:
+    dir: ${output_dir}/${now:%Y-%m-%d}/${now:%H-%M-%S}_${seed}_${to_string:${acquisition_model.name}}_${al.strategy}
+    subdir: ${hydra.job.num}
+
+seed: 42
+cuda_device: 0
+cache_dir: ./${output_dir}/cache_${seed}_${to_string:${acquisition_model.name}}
+cache_model_and_dataset: False
+framework: ???
+task: 'cls'
+offline_mode: False
+
+data:
+    dataset_name: 'ag_news'
+    text_name: 'text'
+    label_name: 'label'
+    labels_to_remove:
+    path: 'datasets'
+    train_size_split: 0.9
+    seed: ${seed}
+
+acquisition_model:
+    type: ${task}
+    name: 'distilbert-base-uncased'
+    tokenizer_max_length: 256
+    num_labels:
+    classifier_dropout: 0.
+    exists_in_repo: True  # whether the model exists in HF models repo
+    path_to_pretrained:  # required if the model does not exist in HF models repo
+    training:
+        dev_size: 0.
+        shuffle_dev: False
+        freeze_embedder: False
+        batch_size_args:
+            batch_size: 16
+            eval_batch_size: 100
+            min_num_gradient_steps: 350
+            adjust_batch_size: True
+            adjust_num_epochs: True
+            min_batch_size: 4
+        trainer_args:
+            num_epochs: 10
+            patience: ${get_patience_value:${acquisition_model.training.dev_size}}
+            grad_clipping: 1.
+            serialization_dir: ./output/${to_string:${acquisition_model.name}}_${seed}_${now:%Y-%m-%d}_${now:%H-%M-%S}/acquisition
+            validation_metric: ${framework.validation_metric_cls}
+            evaluation_strategy: 'no' # for transformers wrapper, 'epoch' or 'steps' or 'no'
+            eval_metrics: ["f1"]
+            fp16:
+                training: True
+                evaluation: False
+            accumulation:
+                gradient_accumulation_steps: 1
+                eval_accumulation_steps:
+        optimizer_args:
+            weight_decay: 0.01
+            lr: 2e-5
+        scheduler_args:
+            warmup_steps_factor: 0.1
+            use_adafactor: False
+
+successor_model:
+
+al:
+    strategy: 'lc'
+    num_queries: 15
+    init_p_or_n: 0.01
+    step_p_or_n: 0.01
+    gamma_or_k_confident_to_save: 0.25
+    T: 0.1
+    sampling_type:
+    iters_to_recalc_scores: [0, 1, 4, 8]
+    evaluate_query: True
+    strategy_kwargs:
+        mahalanobis_use_da: False
+        mahalanobis_use_v2: False
+        mc_iterations: 10
+        max_num_samples: 1_000
+        only_head_dropout: False
+        use_stable_dropout: True
+        n_clusters: 12000
+        instances_multiplier: 1.25
+        random_query: True
+        fast: False
+        distance: 'cosine'
+        mahalanobis_triplet_lamb: 0.25
+        mahalanobis_batched: False
+
+
+#al_strategy: ???
+
+defaults:
+  - framework: transformers # 'allennlp' or 'transformers'
+#  - al_strategy: lc # lc, random, mahalanobis, nuq, ddu, logits_lc

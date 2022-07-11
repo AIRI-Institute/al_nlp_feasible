@@ -1,0 +1,6 @@
+host: '0.0.0.0'
+port: '5000'
+ls_host: '0.0.0.0'
+ls_port: '8080'
+ls_token: 'cdd3fad9f2b89055c06ee79900a661eac1f25567'
+project_id: '15'

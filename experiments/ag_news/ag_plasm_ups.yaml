@@ -1,0 +1,16 @@
+cuda_devices: [0,1,2]
+task_names: ''
+hydra:
+  run:
+    dir: ./workdir/logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    
+tasks:
+    - 
+        name: 'plasm_ups_ag'
+        config_path: '../configs'
+        config_name: 'al_cls_plasm'
+        command: '/home/jovyan/al_nlp_feasible/active_learning/run_active_learning.py'
+        environ: ''
+        args: 'tracin.use=True tracin.quantiles=[-1] target_model.name=google/electra-base-discriminator successor_model.training.dev_size=0.1 al.sampling_type=ups al.gamma_or_k_confident_to_save=0.1 al.T=0.01'
+        seeds: [23419, 705525, 4837, 10671619, 1084218]
+        n_repeats: 1

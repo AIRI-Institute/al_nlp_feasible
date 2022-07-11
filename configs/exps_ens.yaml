@@ -1,0 +1,55 @@
+cuda_devices: [1,2,3,4]
+task_names: ''
+hydra:
+  run:
+    dir: ./workdir/logs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    
+tasks:
+    -
+        name: 'pr_var'
+        config_path: '../configs/'
+        config_name: 'al_ner.yaml'
+        command: './src/run_active_learning.py'
+        environ: ''
+        args: 'al.strategy=prob_var_de_ner al.deep_ensemble=True'
+        seeds: [ 13, 42, 17, 0 ]
+        ens_seeds: [ [ 13, 867, 564, 232, 363463 ], [ 42, 678, 54, 555, 8567 ], [ 17, 253, 3532, 345, 645764 ], [ 0, 24, 6436, 733, 3335 ] ]
+        n_repeats: 1
+    -
+        name: 'mnlp'
+        config_path: '../configs/'
+        config_name: 'al_ner.yaml'
+        command: './src/run_active_learning.py'
+        environ: ''
+        args: 'al.strategy=mnlp'
+        seeds: [ 13, 42, 17, 0 ]
+        n_repeats: 1
+    -
+        name: 'random'
+        config_path: '../configs/'
+        config_name: 'al_ner.yaml'
+        command: './src/run_active_learning.py'
+        environ: ''
+        args: 'al.strategy=random'
+        seeds: [ 13, 42, 17, 0 ]
+        n_repeats: 1
+    -
+        name: 'me_var'
+        config_path: '../configs/'
+        config_name: 'al_ner.yaml'
+        command: './src/run_active_learning.py'
+        environ: ''
+        args: 'al.strategy=mean_ent_de_ner al.deep_ensemble=True'
+        seeds: [ 13, 42, 17, 0 ]
+        ens_seeds: [ [ 13, 867, 564, 232, 363463 ], [ 42, 678, 54, 555, 8567 ], [ 17, 253, 3532, 345, 645764 ], [ 0, 24, 6436, 733, 3335 ] ]
+        n_repeats: 1
+    -
+        name: 'bald_var'
+        config_path: '../configs/'
+        config_name: 'al_ner.yaml'
+        command: './src/run_active_learning.py'
+        environ: ''
+        args: 'al.strategy=bald_de_ner al.deep_ensemble=True'
+        seeds: [ 13, 42, 17, 0 ]
+        ens_seeds: [ [ 13, 867, 564, 232, 363463 ], [ 42, 678, 54, 555, 8567 ], [ 17, 253, 3532, 345, 645764 ], [ 0, 24, 6436, 733, 3335 ] ]
+        n_repeats: 1
