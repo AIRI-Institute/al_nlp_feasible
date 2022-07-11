@@ -12,8 +12,8 @@ The `configs` folder contains config files with general settings. The `experimen
 
 For example to launch PLASM on AG-News with ELECTRA as a successor model:
 ```
-cd PATH_TO_THIS_REPO/examples/al
-HYDRA_CONFIG_PATH=./experiments/ag_news HYDRA_CONFIG_NAME=ag_plasm_ups python '../../active_learning/active_learning/run_tasks_on_multiple_gpus.py'
+cd PATH_TO_THIS_REPO
+HYDRA_CONFIG_PATH=../experiments/ag_news HYDRA_EXP_CONFIG_NAME=ag_plasm python active_learning/run_tasks_on_multiple_gpus.py
 ```
 
 ### Config structure explanation
