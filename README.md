@@ -24,6 +24,14 @@ HYDRA_CONFIG_PATH=./experiments/ag_news HYDRA_CONFIG_NAME=ag_plasm_ups python '.
 - `args`: arguments to modify from a general config in the current experiment. **acquisition_model.name=xlnet-base-cased** means that _xlnet-base-cased_ will be used as an acquisition model.
 - `seeds`: random seeds to use. **seeds=[4837, 23419]** means that two separate experiments with the same settings (except for **seed**) will be run: one with **seed == 4837**, one with **seed == 23419**.
 
+### Output explanation
+By default, the results will be present in the folder `RUN_DIRECTORY/workdir_run_active_learning/DATE_OF_RUN/${TIME_OF_RUN}_${SEED}_${MODEL_CHECKPOINT}`. For instance, when launching from the repository folder: `al_nlp_feasible/workdir/run_active_learning/2022-06-11/15-59-31_23419_distilbert_base_uncased_bert_base_uncased`.
+
+- When running a classic AL experiment (acquisition and successor models coincide, regardless of using UPS), the file with the model metrics is `acquisition_metrics.json`.
+- When running an acquisition-successor mismatch experiment, the file with the model metrics is `successor_metrics.json`.
+- When running a PLASM experiment, the file with the model metrics is `target_tracin_quantile_-1.0_metrics.json` (-1.0 stands for the filtering value, -1 means adaptive filtering rate; when using a deterministic filtering rate (e.g. 0.1), the file will be named `target_tracin_quantile_0.1_metrics.json)`. The file with the metrics of the model **without filtering** is `target_metrics.json`.
+
+
 ### Datasets
 The research has employed 2 NER datasets (CoNLL-2003, OntoNotes-2012) and 2 Text Classification (CLS) datasets (AG-News, IMDB). If one wants to launch an experiment on a custom dataset, they need to use one of the following ways to add it:
 
