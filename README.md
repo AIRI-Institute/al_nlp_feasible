@@ -50,26 +50,23 @@ The current version of the repository supports all models from [HuggingFace Tran
 
 ## Citation
 ```
-@article{tsvigun-etal-2022-plasm,
-  author    = {Akim Tsvigun and
-               Artem Shelmanov and
-               Gleb Kuzmin and
-               Leonid Sanochkin and
-               Daniil Larionov and
-               Gleb Gusev and
-               Manvel Avetisian and
-               Leonid Zhukov},
-  title     = {Towards Computationally Feasible Deep Active Learning},
-  journal   = {CoRR},
-  volume    = {abs/2205.03598},
-  year      = {2022},
-  url       = {https://doi.org/10.48550/arXiv.2205.03598},
-  doi       = {10.48550/arXiv.2205.03598},
-  eprinttype = {arXiv},
-  eprint    = {2205.03598},
-  timestamp = {Wed, 11 May 2022 17:29:40 +0200},
-  biburl    = {https://dblp.org/rec/journals/corr/abs-2205-03598.bib},
-  bibsource = {dblp computer science bibliography, https://dblp.org}
+@inproceedings{tsvigun-etal-2022-plasm,
+    title = "Towards Computationally Feasible Deep Active Learning",
+    author = "Tsvigun, Akim  and
+      Shelmanov, Artem  and
+      Kuzmin, Gleb  and
+      Sanochkin, Leonid  and
+      Larionov, Daniil  and
+      Gusev, Gleb  and
+      Avetisian, Manvel  and
+      Zhukov, Leonid",
+    booktitle = "Findings of the Association for Computational Linguistics: NAACL 2022",
+    month = jul,
+    year = "2022",
+    address = "Seattle, United States",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2022.findings-naacl.90",
+    pages = "1198--1218",
 }
 ```
 
